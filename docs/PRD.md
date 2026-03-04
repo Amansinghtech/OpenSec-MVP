@@ -1,14 +1,3 @@
-Perfect. Below is a **clean service & database architecture document** for your final system.
-
-This is structured so you can:
-
-* Add it to your repo `/docs/architecture.md`
-* Use it in investor/technical discussions
-* Share with contributors
-* Use internally for engineering clarity
-
----
-
 # 🛡 Autonomous Security Operations Engine
 
 ## Service & Infrastructure Architecture Document
