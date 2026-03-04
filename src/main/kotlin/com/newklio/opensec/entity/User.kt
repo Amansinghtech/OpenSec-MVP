@@ -1,20 +1,47 @@
 package com.newklio.opensec.entity
 
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import jakarta.persistence.*
+import org.hibernate.annotations.CreationTimestamp
+import org.hibernate.annotations.UpdateTimestamp
+import java.time.Instant
+import java.util.*
 
 @Entity
-@Table(name = "users")
+@EntityListeners(UserEntityListener::class)
+@Table(
+    name = "users",
+    indexes = [
+        Index(name = "idx_user_username", columnList = "username"),
+        Index(name = "idx_user_email", columnList = "email"),
+        Index(name = "idx_user_phone", columnList = "phone")
+    ]
+)
 data class User(
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    @GeneratedValue(strategy = GenerationType.UUID)
+    val id: UUID,
 
-    val name: String,
+    @Column(unique = true, nullable = false)
+    val username: String,
 
-    val email: String
+    @Column(unique = false, nullable = true)
+    val email: String,
+
+    @Column(nullable = false, length = 15)
+    val phone: String,
+
+    @Column(nullable = true)
+    val fullName: String? = null,
+
+    @Column(nullable = false)
+    var password: String,
+
+    @Column(nullable = false)
+    var enabled: Boolean = true,
+
+    @CreationTimestamp
+    val createdAt: Instant? = null,
+
+    @UpdateTimestamp
+    val updatedAt: Instant? = null
 )

@@ -10,13 +10,6 @@ class UserService(
     private val userRepository: UserRepository
 ) {
 
-    fun createUser(request: UserRequest): User {
-        val user = User(
-            name = request.name,
-            email = request.email
-        )
-        return userRepository.save(user)
-    }
 
     fun getUsers(): List<User> {
         return userRepository.findAll()
