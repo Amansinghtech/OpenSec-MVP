@@ -1,5 +1,6 @@
 package com.newklio.opensec.service
 
+import com.newklio.opensec.config.JWTConfig
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -8,12 +9,12 @@ import org.springframework.stereotype.Component
 import java.util.*
 
 @Component
-class JWTService {
+class JWTService(
+    jwtConfig: JWTConfig
+) {
 
-    private val secret = "very-secret-key-for-jwt-example"
-    private val expiration = 86400000
-
-    val key = Keys.secretKeyFor(SignatureAlgorithm.HS256)
+    private val expiration = jwtConfig.expiration
+    private val key = Keys.hmacShaKeyFor(jwtConfig.secret.toByteArray())
 
     fun generateToken(username: String): String {
 
