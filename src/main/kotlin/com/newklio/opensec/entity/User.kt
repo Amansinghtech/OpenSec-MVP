@@ -19,7 +19,7 @@ import java.util.*
 data class User(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    val id: UUID,
+    val id: UUID? = null,
 
     @Column(unique = true, nullable = false)
     val username: String,
