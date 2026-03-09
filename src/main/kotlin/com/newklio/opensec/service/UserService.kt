@@ -1,10 +1,8 @@
 package com.newklio.opensec.service
 
-import com.newklio.opensec.dto.UserRequest
+import com.newklio.opensec.entity.AuthenticatedUser
 import com.newklio.opensec.entity.User
 import com.newklio.opensec.repository.UserRepository
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
@@ -12,17 +10,13 @@ import org.springframework.stereotype.Service
 @Service
 class UserService(
     private val userRepository: UserRepository
-): UserDetailsService {
-    override fun loadUserByUsername(username: String): UserDetails {
+) : UserDetailsService {
+    override fun loadUserByUsername(username: String): AuthenticatedUser {
 
         val user = userRepository.findByUsername(username)
             ?: throw UsernameNotFoundException("User not found")
 
-        return org.springframework.security.core.userdetails.User(
-            user.username,
-            user.password,
-            listOf(SimpleGrantedAuthority("ROLE_USER"))
-        )
+        return AuthenticatedUser(user)
     }
 
     fun getUsers(): List<User> {
