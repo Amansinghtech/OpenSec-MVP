@@ -37,25 +37,32 @@ Implemented so far (Kotlin + Spring Boot 4, Gradle, PostgreSQL/H2, Flyway, JWT, 
 Fix correctness issues in the existing scaffold before building on top of it. These are
 small but block reliable auth.
 
-- [ ] **Add `@RequestBody` to `AuthController.login` / `signup`** — without it, Spring MVC
+- [x] **Add `@RequestBody` to `AuthController.login` / `signup`** — without it, Spring MVC
   binds from query params instead of the JSON body, so both endpoints are effectively broken.
-- [ ] **Fix `UserRepository` ID type mismatch** — repository is `JpaRepository<User, Long>`
+  Also added `@Valid` + Bean Validation constraints on the auth DTOs.
+- [x] **Fix `UserRepository` ID type mismatch** — repository is `JpaRepository<User, Long>`
   but `User.id` is a `UUID`. Change to `JpaRepository<User, UUID>` and update
   `UserService.getUser`/`deleteUser` signatures (`Long` → `UUID`).
-- [ ] **Fix `docker-compose.dev.yaml` healthcheck** — it checks `-U testuser -d testdb`
-  but the container is `postgres`/`opensec`. Align to `pg_isready -U postgres -d opensec`.
-- [ ] **Consolidate/clean Flyway migrations** — `V1`/`V2` create-then-heavily-alter the
-  `users` table. Since there is no production data yet, squash into a single clean
-  `V1__init_users.sql` (or leave as-is and just document — decide and note the choice).
-- [ ] **Remove/repurpose dead code** — `UserRequest` DTO and `UserEntityListener` appear
-  unused/underused; either wire them in or delete.
-- [ ] **Add a global exception handler** (`@RestControllerAdvice`) returning structured
-  error JSON (e.g. `{ code, message, timestamp, path }`) instead of raw `RuntimeException`.
-- [ ] **Standardize a base API path** — decide on `/api/v1` prefix now (matches PRD "API
-  versioning") and apply consistently.
+- [x] **Fix `docker-compose.dev.yaml` healthcheck** — it checked `-U testuser -d testdb`;
+  now aligned to `pg_isready -U postgres -d opensec`. Also fixed the app's default datasource
+  URL to point at the `opensec` DB so it works with compose out of the box.
+- [x] **Consolidate/clean Flyway migrations** — squashed `V1`/`V2` into a single clean
+  `V1__init_users.sql` matching the current `User` entity (verified via Hibernate
+  `ddl-auto=validate` on boot).
+- [x] **Remove/repurpose dead code** — deleted the unused `UserRequest` DTO. `UserEntityListener`
+  is actually wired in via `@EntityListeners` on `User`, so it was kept.
+- [x] **Add a global exception handler** (`@RestControllerAdvice`) returning a structured
+  `ApiError` JSON (`{ status, error, message, path, timestamp, fieldErrors }`). Maps
+  validation → 400, bad credentials → 401, duplicate user → 409, generic → 500.
+- [x] **Standardize a base API path** — added `/api/v1` prefix for all `@RestController`s via
+  a `WebConfig` path-match prefix; updated security matchers accordingly.
+- [x] **(bonus) Stop leaking the password hash** — `/users/me` was returning the bcrypt hash;
+  added `@JsonIgnore` on `User.password`.
 
-**Exit criteria:** app boots against Postgres, `signup` → `login` → call an authenticated
-endpoint (`/users/me`) works end-to-end via Swagger with a bearer token.
+**Exit criteria:** ✅ app boots (verified against H2 in PostgreSQL mode + Flyway); `signup`
+→ `login` → authenticated `/users/me` works end-to-end with a bearer token; error cases
+(409 duplicate, 400 validation, 401 bad credentials) return structured JSON. Full Postgres
+verification is covered once Docker/DB is available (Phase 1 adds Testcontainers).
 
 ---
 
@@ -331,5 +338,5 @@ modifying core services.
 
 ## Immediate next step
 
-Start with **Phase 0** (foundation fixes) since it unblocks a working auth flow, then set up
-**Phase 1** (tests + CI) so everything after it is verifiable. Tackle one checkbox group per PR.
+~~Start with **Phase 0** (foundation fixes)~~ ✅ **done**. Next up: **Phase 1** (tests + CI)
+so everything after it is verifiable. Tackle one checkbox group per PR.
