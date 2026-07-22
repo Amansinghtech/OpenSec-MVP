@@ -4,5 +4,5 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@EnableConfigurationProperties(JWTConfig::class)
+@EnableConfigurationProperties(JWTConfig::class, BootstrapConfig::class)
 class AppConfig

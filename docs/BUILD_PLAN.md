@@ -85,22 +85,34 @@ Set up the safety net early so every later phase can be verified.
 
 Turn the basic JWT auth into a real multi-tenant RBAC system (PRD §1).
 
-- [ ] **Role & Permission model** — `Role`, `Permission` entities + join tables; seed
-  default roles (e.g. `ADMIN`, `ANALYST`, `AGENT`, `VIEWER`).
-- [ ] **Wire authorities into `AuthenticatedUser`** — `getAuthorities()` currently returns
-  empty; populate from the user's roles/permissions.
-- [ ] **Method/route-level authorization** — enable `@EnableMethodSecurity`, protect
-  endpoints with `@PreAuthorize` / role checks.
-- [ ] **Refresh tokens** — issue short-lived access + longer-lived refresh tokens; add
-  `/auth/refresh`.
-- [ ] **Token revocation / logout** — Redis-backed JWT revocation list (PRD §1 store).
-- [ ] **Tenant model** — `Tenant` entity; every user belongs to a tenant; inject
-  `tenant_id` into the security context for downstream scoping.
-- [ ] **Auth audit logging** — persist auth events (login success/failure, token refresh).
+- [x] **Role & Permission model** — `Role`, `Permission` entities + join tables
+  (`role_permissions`, `user_roles`); seeded default roles (`ADMIN`, `ANALYST`, `AGENT`,
+  `VIEWER`) and a permission set via an idempotent `DataInitializer`.
+- [x] **Wire authorities into `AuthenticatedUser`** — `getAuthorities()` now emits
+  `ROLE_*` plus permission authorities derived from the user's roles.
+- [x] **Method/route-level authorization** — `@EnableMethodSecurity` on; `@PreAuthorize`
+  guards on admin user endpoints (`GET /users`, `GET /users/{id}`, `DELETE /users/{id}`).
+- [x] **Refresh tokens** — short-lived access JWTs (jti + roles + tenant claims) + opaque
+  DB-stored refresh tokens with rotation; added `POST /auth/refresh`.
+- [x] **Token revocation / logout** — `POST /auth/logout` revokes the refresh token and adds
+  the access token's `jti` to a revocation list checked by `JWTAuthFilter`. Implemented behind
+  a `TokenRevocationService` interface with a DB-backed impl (Redis-backed impl in Phase 3).
+- [x] **Tenant model** — `Tenant` entity; users belong to a tenant (default tenant seeded);
+  `tenantId` is carried in the JWT and exposed on the security principal (`AuthenticatedUser.tenantId`).
+  Full request-scoped tenant filter is Phase 4.
+- [x] **Auth audit logging** — `auth_audit_log` table + `AuthAuditService`; records SIGNUP,
+  LOGIN_SUCCESS, LOGIN_FAILURE, TOKEN_REFRESH, LOGOUT with IP/user-agent.
+- [x] **(bonus) 401 vs 403 handlers** — custom `AuthenticationEntryPoint` (401 JSON) and
+  `AccessDeniedException` handling (403 JSON) replace the previous blanket 403.
 - [ ] (Later) **SSO readiness** — structure config for OIDC/SAML (implementation deferred).
 
-**Exit criteria:** RBAC enforced on endpoints; refresh + revocation working; every request
-carries a tenant context.
+**Exit criteria:** ✅ RBAC enforced on endpoints (verified 403 for viewer, 200 for admin);
+refresh rotation + access/refresh revocation working; every issued token + principal carries a
+tenant context. Verified end-to-end against H2 (PostgreSQL mode) with Hibernate schema validation.
+
+> **Note on ordering:** token revocation is DB-backed for now behind `TokenRevocationService`;
+> **Phase 3** swaps in a Redis implementation. This was the one Phase 2 item that logically
+> depends on Redis, so it was stubbed with a persistent DB store rather than deferred.
 
 ---
 
@@ -338,5 +350,7 @@ modifying core services.
 
 ## Immediate next step
 
-~~Start with **Phase 0** (foundation fixes)~~ ✅ **done**. Next up: **Phase 1** (tests + CI)
-so everything after it is verifiable. Tackle one checkbox group per PR.
+Progress: **Phase 0** ✅ done, **Phase 2** ✅ done. **Phase 1** (tests + CI) was intentionally
+deferred and should be picked up soon so the growing surface stays verifiable. **Phase 3**
+(Redis) is the natural follow-on to move token revocation off the database. Tackle one
+checkbox group per PR.

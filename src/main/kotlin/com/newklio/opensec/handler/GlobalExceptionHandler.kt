@@ -4,6 +4,7 @@ import com.newklio.opensec.dto.ApiError
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -31,6 +32,14 @@ class GlobalExceptionHandler {
         request: HttpServletRequest
     ): ResponseEntity<ApiError> {
         return build(HttpStatus.UNAUTHORIZED, "Invalid credentials", request)
+    }
+
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDenied(
+        ex: AccessDeniedException,
+        request: HttpServletRequest
+    ): ResponseEntity<ApiError> {
+        return build(HttpStatus.FORBIDDEN, "Access denied", request)
     }
 
     @ExceptionHandler(UsernameNotFoundException::class)
