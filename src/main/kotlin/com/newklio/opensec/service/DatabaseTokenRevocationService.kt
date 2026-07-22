@@ -2,11 +2,13 @@ package com.newklio.opensec.service
 
 import com.newklio.opensec.entity.RevokedAccessToken
 import com.newklio.opensec.repository.RevokedAccessTokenRepository
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.util.UUID
 
 @Service
+@ConditionalOnProperty(name = ["opensec.revocation.store"], havingValue = "database", matchIfMissing = true)
 class DatabaseTokenRevocationService(
     private val revokedAccessTokenRepository: RevokedAccessTokenRepository,
 ) : TokenRevocationService {
