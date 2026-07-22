@@ -341,13 +341,13 @@ when RAG is unavailable.
 
 Create and manage alerts.
 
-- [ ] Consume `detection_signal` + `contextualized_detection`.
-- [ ] Aggregate risk signals → final risk score.
-- [ ] Alert entity + lifecycle (new/acknowledged/resolved/suppressed).
-- [ ] Persist to Postgres + index in OpenSearch; emit `alert_created`.
-- [ ] Alert query/list APIs.
+- [x] Consume `detection_signal` + `contextualized_detection`.
+- [x] Aggregate risk signals → final risk score.
+- [x] Alert entity + lifecycle (new/acknowledged/resolved/suppressed).
+- [x] Persist to Postgres + index in OpenSearch; emit `alert_created`.
+- [x] Alert query/list APIs.
 
-**Exit criteria:** end-to-end pipeline produces queryable alerts from logs.
+**Exit criteria:** ✅ end-to-end pipeline produces queryable alerts from logs.
 
 ---
 

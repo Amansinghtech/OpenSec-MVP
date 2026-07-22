@@ -124,4 +124,12 @@ class KafkaConfig(
             .partitions(partitions)
             .replicas(1)
             .build()
+
+    @Bean
+    fun alertEventsTopic(): NewTopic =
+        TopicBuilder
+            .name(KafkaTopics.ALERT_EVENTS)
+            .partitions(partitions)
+            .replicas(1)
+            .build()
 }
