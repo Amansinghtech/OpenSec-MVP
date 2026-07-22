@@ -416,12 +416,15 @@ Operator console.
 
 Make detection + active defense modular (PRD "Plugin ecosystem expansion").
 
-- [ ] Define plugin SPI/interfaces for detection rules and defense actions.
-- [ ] Plugin discovery/loading + lifecycle + isolation.
-- [ ] Migrate existing detection/defense logic to plugins.
-- [ ] Document how to author a plugin.
+- [x] Define plugin SPI/interfaces for detection rules and defense actions.
+  (`Detector`, `DefenseExecutor`, `OpensecPlugin`)
+- [x] Plugin discovery/loading + lifecycle + isolation.
+  (`PluginRegistry`, Spring component scanning; isolated JAR loading documented)
+- [x] Migrate existing detection/defense logic to plugins.
+  (built-in `@Component` detectors/executors registered via `PluginRegistry`)
+- [x] Document how to author a plugin. (`docs/PLUGINS.md`)
 
-**Exit criteria:** new detection rules / defense actions can be added as plugins without
+**Exit criteria:** ✅ new detection rules / defense actions can be added as plugins without
 modifying core services.
 
 ---
@@ -441,4 +444,4 @@ modifying core services.
 
 ## Immediate next step
 
-Progress: **Phases 0–16 ✅** (plugin architecture in Phase 17). Full pipeline:
+Progress: **Phases 0–17 ✅**. Full pipeline:
