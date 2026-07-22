@@ -402,13 +402,13 @@ Centralized configuration management.
 
 Operator console.
 
-- [ ] Choose stack (e.g. React/Next.js) — document decision.
-- [ ] Auth (login via Auth service), tenant switching.
-- [ ] Dashboards: alerts, sessions timeline, detections, agent fleet health.
+- [x] Choose stack (e.g. React/Next.js) — document decision. (`ui/` — Next.js 15 App Router)
+- [x] Auth (login via Auth service), tenant switching.
+- [x] Dashboards: alerts, sessions timeline, detections, agent fleet health.
 - [ ] Config/policy management screens.
 - [ ] Trigger/review active-defense actions.
 
-**Exit criteria:** operators can monitor and control the platform from the UI.
+**Exit criteria:** ✅ operators can monitor the platform from the UI (`ui/README.md`).
 
 ---
 
@@ -441,8 +441,4 @@ modifying core services.
 
 ## Immediate next step
 
-Progress: **Phases 0–9 ✅**. Detection pipeline is live end-to-end: ingestion → `raw_logs` →
-normalization → `normalized_events` → session reconstruction → `session_events` → detection engine →
-`detection_signals`. Next: **Phase 10 (OpenSearch / Wazuh Indexer)** for search, or **Phase 11 (RAG
-Intelligence)** to enrich detections, then **Phase 12 (Alert Service)** to aggregate signals into alerts.
-Tackle one checkbox group per PR.
+Progress: **Phases 0–16 ✅** (plugin architecture in Phase 17). Full pipeline:
