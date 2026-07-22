@@ -27,7 +27,7 @@ class AgentController(
     private val agentService: AgentService,
 ) {
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('AGENT_WRITE')")
     fun enroll(
         @Valid @RequestBody request: CreateAgentRequest,
         @AuthenticationPrincipal user: AuthenticatedUser,
@@ -39,7 +39,7 @@ class AgentController(
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
+    @PreAuthorize("hasAuthority('AGENT_READ')")
     fun listAgents(
         @AuthenticationPrincipal user: AuthenticatedUser,
     ): List<AgentResponse> {
@@ -50,7 +50,7 @@ class AgentController(
     }
 
     @GetMapping("/fleet/summary")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
+    @PreAuthorize("hasAuthority('AGENT_READ')")
     fun fleetSummary(
         @AuthenticationPrincipal user: AuthenticatedUser,
     ): FleetSummaryResponse {
@@ -67,7 +67,7 @@ class AgentController(
     ): AgentResponse = agentService.getAgent(agent.agent.id!!, agent.tenantId)!!
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
+    @PreAuthorize("hasAuthority('AGENT_READ')")
     fun getAgent(
         @PathVariable id: UUID,
         @AuthenticationPrincipal user: AuthenticatedUser,
@@ -83,11 +83,11 @@ class AgentController(
     @PreAuthorize("hasRole('AGENT')")
     fun heartbeat(
         @AuthenticationPrincipal agent: AgentPrincipal,
-        @RequestBody request: HeartbeatRequest = HeartbeatRequest(),
-    ): AgentResponse = agentService.heartbeat(agent.agent, request)
+        @RequestBody(required = false) request: HeartbeatRequest?,
+    ): AgentResponse = agentService.heartbeat(agent.agent.id!!, request ?: HeartbeatRequest())
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('AGENT_WRITE')")
     fun revoke(
         @PathVariable id: UUID,
         @AuthenticationPrincipal user: AuthenticatedUser,

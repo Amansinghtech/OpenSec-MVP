@@ -8,6 +8,7 @@ import com.newklio.opensec.dto.HeartbeatRequest
 import com.newklio.opensec.entity.Agent
 import com.newklio.opensec.model.AgentStatus
 import com.newklio.opensec.repository.AgentRepository
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -80,9 +81,17 @@ class AgentService(
 
     @Transactional
     fun heartbeat(
-        agent: Agent,
+        agentId: UUID,
         request: HeartbeatRequest,
     ): AgentResponse {
+        // Re-load inside the transaction so a concurrent revoke cannot be overwritten.
+        val agent =
+            agentRepository.findById(agentId).orElseThrow {
+                IllegalStateException("Agent not found")
+            }
+        if (agent.status == AgentStatus.REVOKED) {
+            throw AccessDeniedException("Agent has been revoked")
+        }
         request.hostname?.let { agent.hostname = it }
         request.wazuhAgentId?.let { agent.wazuhAgentId = it }
         agent.lastHeartbeatAt = Instant.now()
