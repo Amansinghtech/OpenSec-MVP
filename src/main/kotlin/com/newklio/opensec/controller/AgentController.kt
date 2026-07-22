@@ -1,5 +1,7 @@
 package com.newklio.opensec.controller
 
+import com.newklio.opensec.dto.AgentCommandRequest
+import com.newklio.opensec.dto.AgentCommandResponse
 import com.newklio.opensec.dto.AgentEnrollmentResponse
 import com.newklio.opensec.dto.AgentResponse
 import com.newklio.opensec.dto.CreateAgentRequest
@@ -7,6 +9,7 @@ import com.newklio.opensec.dto.FleetSummaryResponse
 import com.newklio.opensec.dto.HeartbeatRequest
 import com.newklio.opensec.entity.AgentPrincipal
 import com.newklio.opensec.entity.AuthenticatedUser
+import com.newklio.opensec.service.AgentCommandService
 import com.newklio.opensec.service.AgentService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -25,6 +28,7 @@ import java.util.UUID
 @RequestMapping("/agents")
 class AgentController(
     private val agentService: AgentService,
+    private val agentCommandService: AgentCommandService,
 ) {
     @PostMapping
     @PreAuthorize("hasAuthority('AGENT_WRITE')")
@@ -85,6 +89,27 @@ class AgentController(
         @AuthenticationPrincipal agent: AgentPrincipal,
         @RequestBody(required = false) request: HeartbeatRequest?,
     ): AgentResponse = agentService.heartbeat(agent.agent.id!!, request ?: HeartbeatRequest())
+
+    @PostMapping("/{id}/commands")
+    @PreAuthorize("hasAuthority('AGENT_WRITE')")
+    fun dispatchCommand(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: AgentCommandRequest,
+        @AuthenticationPrincipal user: AuthenticatedUser,
+    ): AgentCommandResponse {
+        val tenantId = user.tenantId ?: throw IllegalStateException("User has no tenant")
+        return agentCommandService.dispatch(id, tenantId, request)
+    }
+
+    @GetMapping("/{id}/commands")
+    @PreAuthorize("hasAuthority('AGENT_READ')")
+    fun listCommands(
+        @PathVariable id: UUID,
+        @AuthenticationPrincipal user: AuthenticatedUser,
+    ): List<AgentCommandResponse> {
+        val tenantId = user.tenantId ?: throw IllegalStateException("User has no tenant")
+        return agentCommandService.listCommands(id, tenantId)
+    }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('AGENT_WRITE')")

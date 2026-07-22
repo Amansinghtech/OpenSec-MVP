@@ -362,7 +362,8 @@ Endpoint telemetry + response execution for Windows/Linux (PRD §3 Agents). Per 
   `AGENT` token; or `alerts.json` → Fluent Bit → Kafka (Phase 6).
 - [x] Agent/manager health surfaced in OPENSEC (heartbeat / fleet status).
   (`POST /api/v1/agents/heartbeat`, `GET /api/v1/agents/fleet/summary`)
-- [ ] Command channel for defense actions — leverage Wazuh **active-response** (sets up Phase 14).
+- [x] Command channel for defense actions — leverage Wazuh **active-response** (sets up Phase 14).
+  (`POST /api/v1/agents/{id}/commands`, `WazuhCommandAdapter`)
 - [x] Windows + Linux agent rollout docs. (`docs/AGENT_ENROLLMENT.md`)
 
 **Exit criteria:** Wazuh agents on endpoints ship telemetry into OPENSEC ingestion, and fleet
