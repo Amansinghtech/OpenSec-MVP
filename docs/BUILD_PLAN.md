@@ -390,11 +390,11 @@ Automated response (PRD §9).
 
 Centralized configuration management.
 
-- [ ] Manage tenant configs, detection thresholds, risk weights, defense policies.
-- [ ] Postgres as source of truth; push updates to Redis cache.
-- [ ] Admin APIs to view/update config.
+- [x] Manage tenant configs, detection thresholds, risk weights, defense policies.
+- [x] Postgres as source of truth; push updates to Redis cache.
+- [x] Admin APIs to view/update config.
 
-**Exit criteria:** thresholds/policies/weights are editable centrally and hot-applied via Redis.
+**Exit criteria:** ✅ thresholds/policies/weights are editable centrally and hot-applied via Redis.
 
 ---
 
