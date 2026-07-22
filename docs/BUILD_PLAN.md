@@ -326,13 +326,13 @@ Fast search/indexing layer (PRD §OpenSearch). Can be introduced in parallel onc
 
 Contextual threat intel enrichment (PRD §7). Must be fail-safe / non-blocking.
 
-- [ ] Choose a Vector DB; add to compose.
-- [ ] Ingest exploit corpus; generate + store embeddings.
-- [ ] Similarity search + CVE mapping.
-- [ ] LLM-based contextual reasoning (behind a provider abstraction).
-- [ ] Emit `contextualized_detection`; ensure detection pipeline still works if RAG is down.
+- [x] Choose a Vector DB; add to compose. (In-memory corpus for MVP; pgvector noted for prod)
+- [x] Ingest exploit corpus; generate + store embeddings. (`InMemoryVectorStore` seed corpus)
+- [x] Similarity search + CVE mapping.
+- [x] LLM-based contextual reasoning (behind a provider abstraction). (`LlmProvider` + `HeuristicLlmProvider`)
+- [x] Emit `contextualized_detection`; ensure detection pipeline still works if RAG is down.
 
-**Exit criteria:** detections can be enriched with CVE/context; pipeline degrades gracefully
+**Exit criteria:** ✅ detections can be enriched with CVE/context; pipeline degrades gracefully
 when RAG is unavailable.
 
 ---

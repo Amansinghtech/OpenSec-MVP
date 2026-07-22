@@ -116,4 +116,12 @@ class KafkaConfig(
             .partitions(partitions)
             .replicas(1)
             .build()
+
+    @Bean
+    fun contextualizedDetectionsTopic(): NewTopic =
+        TopicBuilder
+            .name(KafkaTopics.CONTEXTUALIZED_DETECTIONS)
+            .partitions(partitions)
+            .replicas(1)
+            .build()
 }

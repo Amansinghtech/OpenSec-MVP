@@ -1,5 +1,6 @@
 package com.newklio.opensec.config
 
+import com.newklio.opensec.rag.RagProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
@@ -11,5 +12,6 @@ import org.springframework.context.annotation.Configuration
     SessionProperties::class,
     DetectionProperties::class,
     OpenSearchProperties::class,
+    RagProperties::class,
 )
 class AppConfig
