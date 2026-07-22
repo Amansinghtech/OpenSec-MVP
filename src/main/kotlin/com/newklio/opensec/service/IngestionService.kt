@@ -1,7 +1,9 @@
 package com.newklio.opensec.service
 
+import com.newklio.opensec.config.KafkaTopics
 import com.newklio.opensec.context.RequestContext
 import com.newklio.opensec.dto.BatchIngestResult
+import com.newklio.opensec.dto.EventEnvelope
 import com.newklio.opensec.dto.IngestLogRequest
 import com.newklio.opensec.dto.IngestResult
 import com.newklio.opensec.entity.RawLog
@@ -14,10 +16,13 @@ import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 import java.util.UUID
 
+const val RAW_LOG_INGESTED_EVENT = "raw_log.ingested"
+
 @Service
 class IngestionService(
     private val rawLogRepository: RawLogRepository,
     private val objectMapper: ObjectMapper,
+    private val eventPublisher: EventPublisher,
 ) {
     private val log = LoggerFactory.getLogger(IngestionService::class.java)
 
@@ -32,7 +37,7 @@ class IngestionService(
 
         return try {
             val saved = rawLogRepository.save(toRawLog(request, tenantId))
-            // Phase 6 publishes the accepted event to Kafka here.
+            publish(request, tenantId)
             IngestResult(id = saved.id, duplicate = false)
         } catch (ex: DataIntegrityViolationException) {
             // Lost a dedupe race against a concurrent insert of the same event.
@@ -57,9 +62,26 @@ class IngestionService(
                 continue
             }
             val saved = rawLogRepository.save(toRawLog(request, tenantId))
+            publish(request, tenantId)
             saved.id?.let { ids.add(it) }
         }
         return BatchIngestResult(accepted = ids.size, duplicates = duplicates, ids = ids)
+    }
+
+    private fun publish(
+        request: IngestLogRequest,
+        tenantId: UUID,
+    ) {
+        val envelope =
+            EventEnvelope(
+                eventType = RAW_LOG_INGESTED_EVENT,
+                tenantId = tenantId,
+                correlationId = RequestContext.getCorrelationId(),
+                source = request.source,
+                occurredAt = request.occurredAt ?: Instant.now(),
+                payload = request.payload,
+            )
+        eventPublisher.publish(KafkaTopics.RAW_LOGS, envelope)
     }
 
     private fun isDuplicate(

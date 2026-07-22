@@ -231,17 +231,21 @@ logs; they are validated, deduped, stored, and ready to forward to normalization
 
 The async backbone (PRD §Event Bus). Introduce before normalization so services decouple.
 
-- [ ] Add Kafka (+ Zookeeper/KRaft) to `docker-compose.dev.yaml`.
-- [ ] Add `spring-kafka`; create producer/consumer config.
-- [ ] Define **topic strategy** — `normalized_events`, `session_events`,
-  `detection_signals`, `contextualized_detections`, `alert_events`, `defense_events`;
-  partition by `tenant_id`.
-- [ ] Define **event envelope** schema (versioned; includes `tenant_id`, `correlation_id`,
-  `event_type`, `occurred_at`).
-- [ ] Ingestion service **publishes** raw/accepted logs to Kafka.
-- [ ] Add a schema registry decision (Avro/JSON Schema) — document choice.
+- [x] Add Kafka (KRaft, no Zookeeper) to `docker-compose.dev.yaml` (`apache/kafka:3.8.0`).
+- [x] Add `spring-kafka`; producer config in `KafkaConfig` (conditional on `opensec.kafka.enabled`).
+- [x] Define **topic strategy** — `KafkaTopics` constants (`raw_logs`, `normalized_events`,
+  `session_events`, `detection_signals`, `contextualized_detections`, `alert_events`,
+  `defense_events`); records keyed by `tenant_id` for tenant partitioning.
+- [x] Define **event envelope** schema — `EventEnvelope` (versioned; `eventType`, `tenantId`,
+  `correlationId`, `source`, `occurredAt`, `payload`, `schemaVersion`, `eventId`, `emittedAt`).
+- [x] Ingestion service **publishes** accepted logs to `raw_logs` via an `EventPublisher`
+  (`KafkaEventPublisher` when enabled, `NoopEventPublisher` otherwise). Async + **fails open**.
+- [x] **Schema decision:** JSON envelope (via Jackson) for now — human-readable and dependency-light;
+  a registry (Avro/JSON Schema) can be layered later. Documented here.
 
-**Exit criteria:** ingestion publishes to Kafka; a sample consumer reads events locally.
+**Exit criteria:** ✅ ingestion publishes to Kafka (verified by `KafkaIngestionIntegrationTest` with
+Testcontainers `apache/kafka` — a consumer reads the `raw_log.ingested` envelope off `raw_logs`;
+runs in CI, skipped without Docker). App boots and ingests even when Kafka is unreachable (fail-open).
 
 ---
 
@@ -419,7 +423,7 @@ modifying core services.
 
 ## Immediate next step
 
-Progress: **Phase 0** ✅, **Phase 1** ✅ (CI + tests + lint + coverage), **Phase 2** ✅ (Auth &
-RBAC), **Phase 3** ✅ (Redis: revocation + rate limiting). Next: **Phase 4** (API Gateway concerns —
-tenant-context filter, correlation IDs, validation) builds directly on the Redis rate limiter.
-Tackle one checkbox group per PR.
+Progress: **Phase 0** ✅, **Phase 1** ✅ (CI/tests/lint/coverage), **Phase 2** ✅ (Auth & RBAC),
+**Phase 3** ✅ (Redis), **Phase 4** ✅ (gateway: tenant context + correlation id), **Phase 5** ✅
+(log ingestion + Wazuh webhook), **Phase 6** ✅ (Kafka event bus). Next: **Phase 7 — Normalization
+Service** consumes `raw_logs` from Kafka and emits `normalized_event`s. Tackle one checkbox group per PR.
