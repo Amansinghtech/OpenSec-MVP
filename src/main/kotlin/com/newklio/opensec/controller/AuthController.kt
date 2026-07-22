@@ -1,13 +1,17 @@
 package com.newklio.opensec.controller
 
+import com.newklio.opensec.dto.AuthResponse
+import com.newklio.opensec.dto.LoginRequest
 import com.newklio.opensec.dto.SignupRequest
 import com.newklio.opensec.entity.User
 import com.newklio.opensec.repository.UserRepository
 import com.newklio.opensec.service.JWTService
+import jakarta.validation.Valid
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -21,17 +25,8 @@ class AuthController(
     private val passwordEncoder: PasswordEncoder,
 ) {
 
-    data class AuthRequest(
-        val username: String,
-        val password: String
-    )
-
-    data class AuthResponse(
-        val access_token: String
-    )
-
     @PostMapping("/login")
-    fun login(request: AuthRequest): AuthResponse {
+    fun login(@Valid @RequestBody request: LoginRequest): AuthResponse {
 
         authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(
@@ -46,10 +41,10 @@ class AuthController(
     }
 
     @PostMapping("/signup")
-    fun signup(request: SignupRequest): AuthResponse {
+    fun signup(@Valid @RequestBody request: SignupRequest): AuthResponse {
 
         if (userRepository.existsByUsername(request.username)) {
-            throw RuntimeException("Username already exists")
+            throw IllegalStateException("Username already exists")
         }
 
         val user = User(

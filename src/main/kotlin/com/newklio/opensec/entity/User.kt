@@ -1,5 +1,6 @@
 package com.newklio.opensec.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
@@ -35,6 +36,7 @@ data class User(
     @Column(nullable = true)
     val fullName: String? = null,
 
+    @field:JsonIgnore
     @Column(nullable = false)
     var password: String,
 
