@@ -18,6 +18,35 @@ sub-section (or per checkbox group) so progress stays visible.
 - Phases are ordered by dependency. Do not start a later phase until earlier **blocking**
   phases are complete, but non-blocking polish items can be deferred.
 
+## ADR-001: Wazuh as the endpoint + collection layer
+
+**Decision:** Adopt [Wazuh](https://wazuh.com) (open-source SIEM/XDR, GPLv2) as the endpoint
+agent and initial log-collection layer, and position OPENSEC as the **intelligence & response
+layer on top** of it. Wazuh is complementary — it provides rich, already-normalized telemetry and
+rule-based detections; OPENSEC adds behavioral session reconstruction, RAG intelligence,
+cross-source attack-chain detection, multi-tenancy, and the plugin ecosystem.
+
+**Why:** Wazuh already ships the endpoint agents (Win/Linux/macOS: log collection, FIM, SCA,
+vulnerability detection, MITRE ATT&CK mapping) and a manager that decodes raw telemetry into
+structured JSON alerts. Reusing it dramatically shrinks Phases 5, 7, 10, and 13.
+
+**Integration approach (increasing scalability):**
+1. **Integrator webhook (push)** — `wazuh-integratord` `<integration>` block POSTs JSON alerts to
+   OPENSEC's ingestion API (`POST /api/v1/ingest/wazuh`). Used for the Phase 5 MVP.
+2. **`alerts.json` → Fluent Bit → Kafka (stream)** — decoupled, horizontally scalable. Phase 6
+   transport target. (Note: Wazuh 5.0 removed Filebeat in favor of a native `indexer-connector`,
+   so use Fluent Bit / Logstash for the Kafka hop, or the webhook.)
+3. **Query the Wazuh Indexer (OpenSearch fork)** — for search/analytics (relevant to Phase 10).
+
+**Consequences / notes:**
+- Ingestion is designed **source-agnostic** (a `source` discriminator + per-source mappers), so
+  Wazuh is one source among the PRD's list (agents / FluentBit / webhooks / Kafka).
+- **Multi-tenancy:** Wazuh isn't natively multi-tenant; map Wazuh agent groups (or manager
+  clusters) → OPENSEC tenants and stamp `tenant_id` at ingestion. Agents authenticate with an
+  `AGENT`-role token (Phase 2 RBAC).
+- **Phase 13** shifts from "build agents from scratch" → "deploy & manage Wazuh agents".
+- **Phase 10** may reuse the bundled Wazuh Indexer instead of a separate OpenSearch cluster.
+
 ## Current state (baseline)
 
 Implemented so far (Kotlin + Spring Boot 4, Gradle, PostgreSQL/H2, Flyway, JWT, Swagger):
@@ -171,19 +200,22 @@ Harden the REST surface as the single entry point.
 
 ## Phase 5 — Log Ingestion Module (README TODO: "Log Ingestion Module" + "REST APIs for DataIngestion")
 
-Accept logs from agents and other sources (PRD §3).
+Accept logs from agents and other sources (PRD §3). **Wazuh is the first real source** (see ADR-001).
 
-- [ ] Define the **raw log ingestion contract** (DTO/schema: source, host, timestamp,
-  payload, tenant_id, correlation_id).
+- [ ] Define the **source-agnostic raw log ingestion contract** (DTO/schema: source, host,
+  timestamp, payload, tenant_id, correlation_id).
 - [ ] **Ingestion REST API** — `POST /api/v1/ingest/logs` (single + batch), authenticated
-  via agent credentials/token.
+  via an `AGENT`-role token.
+- [ ] **Wazuh ingestion endpoint** — `POST /api/v1/ingest/wazuh` that accepts the Wazuh
+  Integrator webhook payload and maps it (rule.id/level/mitre, agent, decoder, data.*) into the
+  raw ingestion contract.
 - [ ] **Validation & buffering** — validate incoming logs; buffer before forwarding.
-- [ ] **Persistence of raw logs** (Postgres table or object storage) for replay/audit.
-- [ ] **Backpressure / size limits** and idempotency (dedupe by correlation id).
-- [ ] Integration tests for ingestion happy-path + rejection cases.
+- [ ] **Persistence of raw logs** (Postgres table) for replay/audit.
+- [ ] **Backpressure / size limits** and idempotency (dedupe by event/correlation id).
+- [ ] Integration tests for ingestion happy-path + rejection cases (incl. a sample Wazuh alert).
 
-**Exit criteria:** an authenticated client can POST single/batch logs; they are validated,
-stored, and ready to forward to normalization.
+**Exit criteria:** an authenticated client (and a Wazuh Integrator webhook) can POST single/batch
+logs; they are validated, deduped, stored, and ready to forward to normalization.
 
 ---
 
@@ -255,7 +287,8 @@ Multi-layer detection (PRD §6).
 
 Fast search/indexing layer (PRD §OpenSearch). Can be introduced in parallel once events flow.
 
-- [ ] Add OpenSearch to `docker-compose.dev.yaml`.
+- [ ] Add OpenSearch to `docker-compose.dev.yaml` **or reuse the bundled Wazuh Indexer** (an
+  OpenSearch fork) — decide and document (see ADR-001).
 - [ ] Index normalized events, sessions, detections, alerts.
 - [ ] Search APIs for timeline/dashboard queries.
 
@@ -292,17 +325,20 @@ Create and manage alerts.
 
 ---
 
-## Phase 13 — Client-Side Agents (README TODO: "Create Client Side Agents for Logs ingestion")
+## Phase 13 — Client-Side Agents via Wazuh (README TODO: "Create Client Side Agents for Logs ingestion")
 
-Endpoint telemetry + response execution for Windows/Linux (PRD §3 Agents).
+Endpoint telemetry + response execution for Windows/Linux (PRD §3 Agents). Per ADR-001, this is
+**"deploy & manage Wazuh agents"** rather than building agents from scratch.
 
-- [ ] Agent enrollment/registration + credential issuance.
-- [ ] Log shipping to the ingestion API (batching, retry, secure transport).
-- [ ] Heartbeat reporting.
-- [ ] Command channel to receive defense actions (sets up Phase 14).
-- [ ] Windows + Linux builds.
+- [ ] Wazuh manager deployment + agent enrollment guidance (map agent groups → tenants).
+- [ ] Configure the Wazuh Integrator to ship alerts to the OPENSEC ingestion API (Phase 5) with an
+  `AGENT` token; or `alerts.json` → Fluent Bit → Kafka (Phase 6).
+- [ ] Agent/manager health surfaced in OPENSEC (heartbeat / fleet status).
+- [ ] Command channel for defense actions — leverage Wazuh **active-response** (sets up Phase 14).
+- [ ] Windows + Linux agent rollout docs.
 
-**Exit criteria:** a real agent enrolls, ships logs, and reports heartbeats.
+**Exit criteria:** Wazuh agents on endpoints ship telemetry into OPENSEC ingestion, and fleet
+health is visible.
 
 ---
 
