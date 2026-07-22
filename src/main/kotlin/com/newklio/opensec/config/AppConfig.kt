@@ -10,5 +10,6 @@ import org.springframework.context.annotation.Configuration
     RateLimitProperties::class,
     SessionProperties::class,
     DetectionProperties::class,
+    OpenSearchProperties::class,
 )
 class AppConfig

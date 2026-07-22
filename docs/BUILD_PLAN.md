@@ -312,12 +312,13 @@ Verified by `DetectionEngineTest` (signature critical, sub-threshold suppressed,
 
 Fast search/indexing layer (PRD §OpenSearch). Can be introduced in parallel once events flow.
 
-- [ ] Add OpenSearch to `docker-compose.dev.yaml` **or reuse the bundled Wazuh Indexer** (an
-  OpenSearch fork) — decide and document (see ADR-001).
-- [ ] Index normalized events, sessions, detections, alerts.
-- [ ] Search APIs for timeline/dashboard queries.
+- [x] Add OpenSearch to `docker-compose.dev.yaml` **or reuse the bundled Wazuh Indexer** (an
+  OpenSearch fork) — standalone OpenSearch for dev; Wazuh Indexer noted in ADR-001 for prod.
+- [x] Index normalized events, sessions, detections, alerts.
+  (`SearchIndexKafkaListener` + `OpenSearchIndexer`; alerts indexed in Phase 12)
+- [x] Search APIs for timeline/dashboard queries. (`GET /api/v1/search`)
 
-**Exit criteria:** events/detections are searchable via OpenSearch-backed APIs.
+**Exit criteria:** ✅ events/detections are searchable via OpenSearch-backed APIs.
 
 ---
 
