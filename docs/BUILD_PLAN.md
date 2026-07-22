@@ -70,14 +70,27 @@ verification is covered once Docker/DB is available (Phase 1 adds Testcontainers
 
 Set up the safety net early so every later phase can be verified.
 
-- [ ] **Add Testcontainers** (PostgreSQL) for integration tests.
-- [ ] **Write auth flow integration tests** — signup, login, invalid credentials, expired
-  token, accessing a protected route with/without a valid token.
-- [ ] **Add a GitHub Actions CI workflow** — build + test on every PR (`./gradlew build`).
-- [ ] **Add code formatting/linting** — e.g. `ktlint` or `spotless`, enforced in CI.
-- [ ] **Add test coverage reporting** (JaCoCo) with a baseline threshold.
+- [x] **Add Testcontainers** (PostgreSQL) for integration tests — `PostgresContainerIntegrationTest`
+  runs the migrations + auth flow against a real `postgres:16-alpine`. Marked
+  `@Testcontainers(disabledWithoutDocker = true)` so it runs in CI and auto-skips where Docker
+  is unavailable.
+- [x] **Write auth flow integration tests** — `AuthFlowIntegrationTest` (11 tests, H2 in
+  PostgreSQL mode, always runs): signup/duplicate/invalid, login/bad-credentials, protected
+  route with/without token, **expired token**, viewer-forbidden vs admin-allowed (RBAC),
+  refresh rotation + old-token rejection, and logout revocation.
+- [x] **Add a GitHub Actions CI workflow** — `.github/workflows/ci.yml` runs `./gradlew build`
+  (compile + test + coverage gate + format check) on every push to `main` and every PR, on
+  JDK 24; uploads test + coverage reports as artifacts.
+- [x] **Add code formatting/linting** — Spotless + ktlint (`spotlessCheck` wired into `check`),
+  with an `.editorconfig`. Existing code reformatted once to comply.
+- [x] **Add test coverage reporting** (JaCoCo `0.8.13`, Java-24 compatible) with a baseline
+  `jacocoTestCoverageVerification` gate (min 30% instruction; currently ~86%).
 
-**Exit criteria:** CI is green on `main`; PRs run build + tests automatically.
+**Exit criteria:** ✅ `./gradlew check` is green locally (13 tests: 12 run + 1 Testcontainers
+skipped without Docker); CI workflow runs build + tests + lint + coverage on every PR.
+
+> **Note:** implemented after Phase 2 (deferred at the user's request), so the tests exercise
+> the full Phase 0 + Phase 2 auth/RBAC surface. Raise the coverage threshold as the codebase grows.
 
 ---
 
@@ -350,7 +363,6 @@ modifying core services.
 
 ## Immediate next step
 
-Progress: **Phase 0** ✅ done, **Phase 2** ✅ done. **Phase 1** (tests + CI) was intentionally
-deferred and should be picked up soon so the growing surface stays verifiable. **Phase 3**
-(Redis) is the natural follow-on to move token revocation off the database. Tackle one
-checkbox group per PR.
+Progress: **Phase 0** ✅ done, **Phase 2** ✅ done, **Phase 1** ✅ done (CI + tests + lint +
+coverage). Next: **Phase 3** (Redis) is the natural follow-on to move token revocation off the
+database. Tackle one checkbox group per PR.
