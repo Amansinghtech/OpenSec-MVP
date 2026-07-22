@@ -8,6 +8,7 @@ sub-section (or per checkbox group) so progress stays visible.
 
 > Reference documents:
 > - Product/architecture vision: [`docs/PRD.md`](./PRD.md)
+> - **Architecture flow diagrams: [`docs/FLOWS.md`](./FLOWS.md)**
 > - High-level roadmap: [`README.md`](../README.md)
 
 ## How to use this document

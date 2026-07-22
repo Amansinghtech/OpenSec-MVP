@@ -10,6 +10,9 @@ This project AI-based Active Monitoring & Active Defense platform — built to d
 ## Build Plan
 See [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) for the detailed, step-by-step plan we tick off as work progresses.
 
+## Architecture diagrams
+See [`docs/FLOWS.md`](docs/FLOWS.md) for Mermaid diagrams covering the telemetry pipeline, auth flow, agent enrollment, alert/defense lifecycle, multi-tenancy, plugins, and the operator UI.
+
 ## TODO List
 [x] - Create a boilerplate code
 [] - Auth & RBAC mechanism
