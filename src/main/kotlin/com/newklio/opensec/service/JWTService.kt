@@ -13,15 +13,15 @@ import java.util.UUID
 
 @Component
 class JWTService(
-    jwtConfig: JWTConfig
+    jwtConfig: JWTConfig,
 ) {
-
     private val accessExpiration = jwtConfig.accessExpiration
     private val key = Keys.hmacShaKeyFor(jwtConfig.secret.toByteArray())
 
     fun generateAccessToken(user: User): String {
         val now = Date()
-        return Jwts.builder()
+        return Jwts
+            .builder()
             .setId(UUID.randomUUID().toString())
             .setSubject(user.username)
             .claim("tenantId", user.tenant?.id?.toString())
@@ -42,16 +42,19 @@ class JWTService(
 
     fun extractExpiration(token: String): Instant = parseClaims(token).expiration.toInstant()
 
-    fun validateToken(token: String, username: String): Boolean {
+    fun validateToken(
+        token: String,
+        username: String,
+    ): Boolean {
         val claims = parseClaims(token)
         return claims.subject == username && !claims.expiration.before(Date())
     }
 
-    private fun parseClaims(token: String): Claims {
-        return Jwts.parserBuilder()
+    private fun parseClaims(token: String): Claims =
+        Jwts
+            .parserBuilder()
             .setSigningKey(key)
             .build()
             .parseClaimsJws(token)
             .body
-    }
 }

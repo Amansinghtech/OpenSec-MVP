@@ -12,5 +12,7 @@ interface RefreshTokenRepository : JpaRepository<RefreshToken, UUID> {
 
     @Modifying
     @Query("UPDATE RefreshToken r SET r.revoked = true WHERE r.userId = :userId AND r.revoked = false")
-    fun revokeAllForUser(@Param("userId") userId: UUID): Int
+    fun revokeAllForUser(
+        @Param("userId") userId: UUID,
+    ): Int
 }

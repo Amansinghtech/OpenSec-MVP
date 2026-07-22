@@ -6,5 +6,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class JWTConfig(
     var secret: String,
     var accessExpiration: Long,
-    var refreshExpiration: Long
+    var refreshExpiration: Long,
 )

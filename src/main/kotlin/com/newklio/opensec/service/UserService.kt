@@ -10,23 +10,19 @@ import java.util.UUID
 
 @Service
 class UserService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) : UserDetailsService {
     override fun loadUserByUsername(username: String): AuthenticatedUser {
-
-        val user = userRepository.findByUsername(username)
-            ?: throw UsernameNotFoundException("User not found")
+        val user =
+            userRepository.findByUsername(username)
+                ?: throw UsernameNotFoundException("User not found")
 
         return AuthenticatedUser(user)
     }
 
-    fun getUsers(): List<User> {
-        return userRepository.findAll()
-    }
+    fun getUsers(): List<User> = userRepository.findAll()
 
-    fun getUser(id: UUID): User? {
-        return userRepository.findById(id).orElse(null)
-    }
+    fun getUser(id: UUID): User? = userRepository.findById(id).orElse(null)
 
     fun deleteUser(id: UUID) {
         userRepository.deleteById(id)

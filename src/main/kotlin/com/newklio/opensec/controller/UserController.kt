@@ -17,30 +17,31 @@ import java.util.UUID
 @RestController
 @RequestMapping("/users")
 class UserController(
-    private val userService: UserService
+    private val userService: UserService,
 ) {
-
     @GetMapping("/me")
-    fun getCurrentUser(@AuthenticationPrincipal authenticatedUser: AuthenticatedUser): User {
-        return authenticatedUser.details
-    }
+    fun getCurrentUser(
+        @AuthenticationPrincipal authenticatedUser: AuthenticatedUser,
+    ): User = authenticatedUser.details
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    fun listUsers(): List<User> {
-        return userService.getUsers()
-    }
+    fun listUsers(): List<User> = userService.getUsers()
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    fun getUser(@PathVariable id: UUID): ResponseEntity<User> {
+    fun getUser(
+        @PathVariable id: UUID,
+    ): ResponseEntity<User> {
         val user = userService.getUser(id) ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(user)
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    fun deleteUser(@PathVariable id: UUID): ResponseEntity<Void> {
+    fun deleteUser(
+        @PathVariable id: UUID,
+    ): ResponseEntity<Void> {
         userService.deleteUser(id)
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }

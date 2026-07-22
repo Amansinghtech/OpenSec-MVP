@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class OpensecApplication
 
 fun main(args: Array<String>) {
-	runApplication<OpensecApplication>(*args)
+    runApplication<OpensecApplication>(*args)
 }

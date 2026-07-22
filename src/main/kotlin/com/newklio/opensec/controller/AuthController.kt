@@ -21,25 +21,24 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/auth")
 class AuthController(
-    private val authService: AuthService
+    private val authService: AuthService,
 ) {
-
     @PostMapping("/signup")
     fun signup(
         @Valid @RequestBody request: SignupRequest,
-        httpRequest: HttpServletRequest
+        httpRequest: HttpServletRequest,
     ): AuthResponse = authService.signup(request, httpRequest)
 
     @PostMapping("/login")
     fun login(
         @Valid @RequestBody request: LoginRequest,
-        httpRequest: HttpServletRequest
+        httpRequest: HttpServletRequest,
     ): AuthResponse = authService.login(request, httpRequest)
 
     @PostMapping("/refresh")
     fun refresh(
         @Valid @RequestBody request: RefreshRequest,
-        httpRequest: HttpServletRequest
+        httpRequest: HttpServletRequest,
     ): AuthResponse = authService.refresh(request.refreshToken, httpRequest)
 
     @PostMapping("/logout")
@@ -47,7 +46,7 @@ class AuthController(
         @Valid @RequestBody request: LogoutRequest,
         @RequestHeader(value = "Authorization", required = false) authorization: String?,
         @AuthenticationPrincipal principal: AuthenticatedUser?,
-        httpRequest: HttpServletRequest
+        httpRequest: HttpServletRequest,
     ): ResponseEntity<Void> {
         val accessToken = authorization?.takeIf { it.startsWith("Bearer ") }?.substring(7)
         authService.logout(
@@ -55,7 +54,7 @@ class AuthController(
             refreshToken = request.refreshToken,
             username = principal?.username,
             tenantId = principal?.tenantId,
-            httpRequest = httpRequest
+            httpRequest = httpRequest,
         )
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }

@@ -18,12 +18,10 @@ data class Role(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
-
     @Column(nullable = false, unique = true)
     val name: String,
-
     @Column
-    val description: String? = null
+    val description: String? = null,
 ) {
     // Declared outside the primary constructor so the collection is excluded from
     // data-class equals/hashCode/toString (avoids Hibernate lazy/PersistentSet pitfalls).
@@ -31,7 +29,7 @@ data class Role(
     @JoinTable(
         name = "role_permissions",
         joinColumns = [JoinColumn(name = "role_id")],
-        inverseJoinColumns = [JoinColumn(name = "permission_id")]
+        inverseJoinColumns = [JoinColumn(name = "permission_id")],
     )
     var permissions: MutableSet<Permission> = mutableSetOf()
 }

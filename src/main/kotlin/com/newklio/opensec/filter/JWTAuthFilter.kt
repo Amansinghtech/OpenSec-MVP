@@ -17,13 +17,12 @@ import java.util.UUID
 class JWTAuthFilter(
     private val jwtService: JWTService,
     private val userDetailsService: UserService,
-    private val tokenRevocationService: TokenRevocationService
+    private val tokenRevocationService: TokenRevocationService,
 ) : OncePerRequestFilter() {
-
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        filterChain: FilterChain
+        filterChain: FilterChain,
     ) {
         val header = request.getHeader("Authorization")
 
@@ -48,11 +47,12 @@ class JWTAuthFilter(
             val userDetails = userDetailsService.loadUserByUsername(username)
 
             if (userDetails.isEnabled && jwtService.validateToken(token, userDetails.username)) {
-                val authToken = UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.authorities
-                )
+                val authToken =
+                    UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.authorities,
+                    )
                 authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
                 SecurityContextHolder.getContext().authentication = authToken
             }

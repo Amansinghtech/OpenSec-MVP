@@ -9,15 +9,14 @@ import java.util.UUID
 
 @Service
 class AuthAuditService(
-    private val authAuditLogRepository: AuthAuditLogRepository
+    private val authAuditLogRepository: AuthAuditLogRepository,
 ) {
-
     fun record(
         eventType: AuthEventType,
         username: String?,
         tenantId: UUID? = null,
         request: HttpServletRequest? = null,
-        detail: String? = null
+        detail: String? = null,
     ) {
         authAuditLogRepository.save(
             AuthAuditLog(
@@ -26,8 +25,8 @@ class AuthAuditService(
                 tenantId = tenantId,
                 ipAddress = request?.let { clientIp(it) },
                 userAgent = request?.getHeader("User-Agent")?.take(512),
-                detail = detail?.take(512)
-            )
+                detail = detail?.take(512),
+            ),
         )
     }
 

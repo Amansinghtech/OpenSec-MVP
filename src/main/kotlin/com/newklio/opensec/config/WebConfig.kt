@@ -10,11 +10,10 @@ const val API_PREFIX = "/api/v1"
 
 @Configuration
 class WebConfig : WebMvcConfigurer {
-
     override fun configurePathMatch(configurer: PathMatchConfigurer) {
         configurer.addPathPrefix(
             API_PREFIX,
-            HandlerTypePredicate.forAnnotation(RestController::class.java)
+            HandlerTypePredicate.forAnnotation(RestController::class.java),
         )
     }
 }

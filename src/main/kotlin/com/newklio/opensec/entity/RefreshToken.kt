@@ -14,26 +14,21 @@ import java.util.UUID
 @Entity
 @Table(
     name = "refresh_tokens",
-    indexes = [Index(name = "idx_refresh_token_user", columnList = "user_id")]
+    indexes = [Index(name = "idx_refresh_token_user", columnList = "user_id")],
 )
 data class RefreshToken(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
-
     @Column(nullable = false, unique = true)
     val token: String,
-
     @Column(name = "user_id", nullable = false)
     val userId: UUID,
-
     @Column(name = "expires_at", nullable = false)
     val expiresAt: Instant,
-
     @Column(nullable = false)
     var revoked: Boolean = false,
-
     @CreationTimestamp
     @Column(name = "created_at")
-    val createdAt: Instant? = null
+    val createdAt: Instant? = null,
 )

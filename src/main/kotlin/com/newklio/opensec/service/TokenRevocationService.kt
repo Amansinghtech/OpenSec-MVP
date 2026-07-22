@@ -11,6 +11,10 @@ import java.util.UUID
  * makes that swap a one-line change.
  */
 interface TokenRevocationService {
-    fun revoke(jti: UUID, expiresAt: Instant)
+    fun revoke(
+        jti: UUID,
+        expiresAt: Instant,
+    )
+
     fun isRevoked(jti: UUID): Boolean
 }

@@ -14,10 +14,8 @@ data class Permission(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
-
     @Column(nullable = false, unique = true)
     val name: String,
-
     @Column
-    val description: String? = null
+    val description: String? = null,
 )

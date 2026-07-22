@@ -9,10 +9,8 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class OpenApiConfig {
-
     @Bean
     fun customOpenAPI(): OpenAPI {
-
         val securitySchemeName = "bearerAuth"
 
         return OpenAPI()
@@ -25,8 +23,8 @@ class OpenApiConfig {
                             .name(securitySchemeName)
                             .type(SecurityScheme.Type.HTTP)
                             .scheme("bearer")
-                            .bearerFormat("JWT")
-                    )
+                            .bearerFormat("JWT"),
+                    ),
             )
     }
 }

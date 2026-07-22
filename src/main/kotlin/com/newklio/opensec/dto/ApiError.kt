@@ -8,5 +8,5 @@ data class ApiError(
     val message: String,
     val path: String,
     val timestamp: Instant = Instant.now(),
-    val fieldErrors: Map<String, String>? = null
+    val fieldErrors: Map<String, String>? = null,
 )

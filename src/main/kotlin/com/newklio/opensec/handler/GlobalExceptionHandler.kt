@@ -14,79 +14,68 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
-
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidation(
         ex: MethodArgumentNotValidException,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ApiError> {
-        val fieldErrors = ex.bindingResult.fieldErrors.associate {
-            it.field to (it.defaultMessage ?: "invalid value")
-        }
+        val fieldErrors =
+            ex.bindingResult.fieldErrors.associate {
+                it.field to (it.defaultMessage ?: "invalid value")
+            }
         return build(HttpStatus.BAD_REQUEST, "Validation failed", request, fieldErrors)
     }
 
     @ExceptionHandler(BadCredentialsException::class, AuthenticationException::class)
     fun handleAuthentication(
         ex: Exception,
-        request: HttpServletRequest
-    ): ResponseEntity<ApiError> {
-        return build(HttpStatus.UNAUTHORIZED, "Invalid credentials", request)
-    }
+        request: HttpServletRequest,
+    ): ResponseEntity<ApiError> = build(HttpStatus.UNAUTHORIZED, "Invalid credentials", request)
 
     @ExceptionHandler(AccessDeniedException::class)
     fun handleAccessDenied(
         ex: AccessDeniedException,
-        request: HttpServletRequest
-    ): ResponseEntity<ApiError> {
-        return build(HttpStatus.FORBIDDEN, "Access denied", request)
-    }
+        request: HttpServletRequest,
+    ): ResponseEntity<ApiError> = build(HttpStatus.FORBIDDEN, "Access denied", request)
 
     @ExceptionHandler(UsernameNotFoundException::class)
     fun handleUserNotFound(
         ex: UsernameNotFoundException,
-        request: HttpServletRequest
-    ): ResponseEntity<ApiError> {
-        return build(HttpStatus.NOT_FOUND, ex.message ?: "User not found", request)
-    }
+        request: HttpServletRequest,
+    ): ResponseEntity<ApiError> = build(HttpStatus.NOT_FOUND, ex.message ?: "User not found", request)
 
     @ExceptionHandler(IllegalStateException::class)
     fun handleConflict(
         ex: IllegalStateException,
-        request: HttpServletRequest
-    ): ResponseEntity<ApiError> {
-        return build(HttpStatus.CONFLICT, ex.message ?: "Conflict", request)
-    }
+        request: HttpServletRequest,
+    ): ResponseEntity<ApiError> = build(HttpStatus.CONFLICT, ex.message ?: "Conflict", request)
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleBadRequest(
         ex: IllegalArgumentException,
-        request: HttpServletRequest
-    ): ResponseEntity<ApiError> {
-        return build(HttpStatus.BAD_REQUEST, ex.message ?: "Bad request", request)
-    }
+        request: HttpServletRequest,
+    ): ResponseEntity<ApiError> = build(HttpStatus.BAD_REQUEST, ex.message ?: "Bad request", request)
 
     @ExceptionHandler(Exception::class)
     fun handleGeneric(
         ex: Exception,
-        request: HttpServletRequest
-    ): ResponseEntity<ApiError> {
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request)
-    }
+        request: HttpServletRequest,
+    ): ResponseEntity<ApiError> = build(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request)
 
     private fun build(
         status: HttpStatus,
         message: String,
         request: HttpServletRequest,
-        fieldErrors: Map<String, String>? = null
+        fieldErrors: Map<String, String>? = null,
     ): ResponseEntity<ApiError> {
-        val body = ApiError(
-            status = status.value(),
-            error = status.reasonPhrase,
-            message = message,
-            path = request.requestURI,
-            fieldErrors = fieldErrors
-        )
+        val body =
+            ApiError(
+                status = status.value(),
+                error = status.reasonPhrase,
+                message = message,
+                path = request.requestURI,
+                fieldErrors = fieldErrors,
+            )
         return ResponseEntity.status(status).body(body)
     }
 }

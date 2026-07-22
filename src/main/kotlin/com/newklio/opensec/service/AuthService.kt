@@ -32,26 +32,31 @@ class AuthService(
     private val refreshTokenService: RefreshTokenService,
     private val tokenRevocationService: TokenRevocationService,
     private val authAuditService: AuthAuditService,
-    private val bootstrapConfig: BootstrapConfig
+    private val bootstrapConfig: BootstrapConfig,
 ) {
-
     @Transactional
-    fun signup(request: SignupRequest, httpRequest: HttpServletRequest): AuthResponse {
+    fun signup(
+        request: SignupRequest,
+        httpRequest: HttpServletRequest,
+    ): AuthResponse {
         if (userRepository.existsByUsername(request.username)) {
             throw IllegalStateException("Username already exists")
         }
 
-        val tenant = tenantRepository.findBySlug(bootstrapConfig.defaultTenantSlug)
-            ?: throw IllegalStateException("Default tenant is not initialized")
-        val defaultRole = roleRepository.findByName(DEFAULT_SIGNUP_ROLE)
-            ?: throw IllegalStateException("Default role '$DEFAULT_SIGNUP_ROLE' is not initialized")
+        val tenant =
+            tenantRepository.findBySlug(bootstrapConfig.defaultTenantSlug)
+                ?: throw IllegalStateException("Default tenant is not initialized")
+        val defaultRole =
+            roleRepository.findByName(DEFAULT_SIGNUP_ROLE)
+                ?: throw IllegalStateException("Default role '$DEFAULT_SIGNUP_ROLE' is not initialized")
 
-        val user = User(
-            username = request.username,
-            password = passwordEncoder.encode(request.password)!!,
-            email = request.email,
-            phone = request.phoneNumber
-        )
+        val user =
+            User(
+                username = request.username,
+                password = passwordEncoder.encode(request.password)!!,
+                email = request.email,
+                phone = request.phoneNumber,
+            )
         user.tenant = tenant
         user.roles.add(defaultRole)
 
@@ -61,35 +66,45 @@ class AuthService(
     }
 
     @Transactional
-    fun login(request: LoginRequest, httpRequest: HttpServletRequest): AuthResponse {
+    fun login(
+        request: LoginRequest,
+        httpRequest: HttpServletRequest,
+    ): AuthResponse {
         try {
             authenticationManager.authenticate(
-                UsernamePasswordAuthenticationToken(request.username, request.password)
+                UsernamePasswordAuthenticationToken(request.username, request.password),
             )
         } catch (ex: AuthenticationException) {
             authAuditService.record(
                 AuthEventType.LOGIN_FAILURE,
                 request.username,
                 request = httpRequest,
-                detail = ex.message
+                detail = ex.message,
             )
             throw ex
         }
 
-        val user = userRepository.findByUsername(request.username)
-            ?: throw BadCredentialsException("Invalid credentials")
+        val user =
+            userRepository.findByUsername(request.username)
+                ?: throw BadCredentialsException("Invalid credentials")
 
         authAuditService.record(AuthEventType.LOGIN_SUCCESS, user.username, user.tenant?.id, httpRequest)
         return buildTokens(user)
     }
 
     @Transactional
-    fun refresh(presentedToken: String, httpRequest: HttpServletRequest): AuthResponse {
-        val rotated = refreshTokenService.rotate(presentedToken)
-            ?: throw BadCredentialsException("Invalid or expired refresh token")
+    fun refresh(
+        presentedToken: String,
+        httpRequest: HttpServletRequest,
+    ): AuthResponse {
+        val rotated =
+            refreshTokenService.rotate(presentedToken)
+                ?: throw BadCredentialsException("Invalid or expired refresh token")
 
-        val user = userRepository.findById(rotated.userId)
-            .orElseThrow { BadCredentialsException("Invalid or expired refresh token") }
+        val user =
+            userRepository
+                .findById(rotated.userId)
+                .orElseThrow { BadCredentialsException("Invalid or expired refresh token") }
 
         authAuditService.record(AuthEventType.TOKEN_REFRESH, user.username, user.tenant?.id, httpRequest)
 
@@ -97,7 +112,7 @@ class AuthService(
         return AuthResponse(
             accessToken = accessToken,
             refreshToken = rotated.token,
-            expiresInMs = jwtService.accessTokenValidityMs
+            expiresInMs = jwtService.accessTokenValidityMs,
         )
     }
 
@@ -107,7 +122,7 @@ class AuthService(
         refreshToken: String,
         username: String?,
         tenantId: UUID?,
-        httpRequest: HttpServletRequest
+        httpRequest: HttpServletRequest,
     ) {
         accessToken?.let {
             runCatching {
@@ -125,7 +140,7 @@ class AuthService(
         return AuthResponse(
             accessToken = accessToken,
             refreshToken = refreshToken.token,
-            expiresInMs = jwtService.accessTokenValidityMs
+            expiresInMs = jwtService.accessTokenValidityMs,
         )
     }
 }

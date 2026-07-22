@@ -8,10 +8,12 @@ import java.util.UUID
 
 @Service
 class DatabaseTokenRevocationService(
-    private val revokedAccessTokenRepository: RevokedAccessTokenRepository
+    private val revokedAccessTokenRepository: RevokedAccessTokenRepository,
 ) : TokenRevocationService {
-
-    override fun revoke(jti: UUID, expiresAt: Instant) {
+    override fun revoke(
+        jti: UUID,
+        expiresAt: Instant,
+    ) {
         if (!revokedAccessTokenRepository.existsByJti(jti)) {
             revokedAccessTokenRepository.save(RevokedAccessToken(jti = jti, expiresAt = expiresAt))
         }

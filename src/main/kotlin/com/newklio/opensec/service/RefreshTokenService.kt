@@ -13,18 +13,18 @@ import java.util.UUID
 @Service
 class RefreshTokenService(
     private val refreshTokenRepository: RefreshTokenRepository,
-    jwtConfig: JWTConfig
+    jwtConfig: JWTConfig,
 ) {
-
     private val refreshExpiration = jwtConfig.refreshExpiration
     private val random = SecureRandom()
 
     fun issue(userId: UUID): RefreshToken {
-        val token = RefreshToken(
-            token = generateOpaqueToken(),
-            userId = userId,
-            expiresAt = Instant.now().plusMillis(refreshExpiration)
-        )
+        val token =
+            RefreshToken(
+                token = generateOpaqueToken(),
+                userId = userId,
+                expiresAt = Instant.now().plusMillis(refreshExpiration),
+            )
         return refreshTokenRepository.save(token)
     }
 

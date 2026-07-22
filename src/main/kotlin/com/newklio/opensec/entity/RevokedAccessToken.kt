@@ -12,7 +12,6 @@ import java.util.UUID
 data class RevokedAccessToken(
     @Id
     val jti: UUID,
-
     @Column(name = "expires_at", nullable = false)
-    val expiresAt: Instant
+    val expiresAt: Instant,
 )

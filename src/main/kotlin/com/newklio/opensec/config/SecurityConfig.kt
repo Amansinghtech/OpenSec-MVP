@@ -18,7 +18,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableMethodSecurity
 class SecurityConfig {
-
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
@@ -27,9 +26,8 @@ class SecurityConfig {
         http: HttpSecurity,
         jwtAuthFilter: JWTAuthFilter,
         authenticationEntryPoint: RestAuthenticationEntryPoint,
-        accessDeniedHandler: RestAccessDeniedHandler
+        accessDeniedHandler: RestAccessDeniedHandler,
     ): SecurityFilterChain {
-
         http
             .csrf { it.disable() }
             .authorizeHttpRequests {
@@ -37,23 +35,16 @@ class SecurityConfig {
                 it.requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
                 it.requestMatchers("/v3/api-docs/**").permitAll()
                 it.anyRequest().authenticated()
-            }
-            .sessionManagement {
+            }.sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }
-            .exceptionHandling {
+            }.exceptionHandling {
                 it.authenticationEntryPoint(authenticationEntryPoint)
                 it.accessDeniedHandler(accessDeniedHandler)
-            }
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+            }.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }
 
     @Bean
-    fun authenticationManager(
-        config: AuthenticationConfiguration
-    ): AuthenticationManager {
-        return config.authenticationManager
-    }
+    fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager = config.authenticationManager
 }
