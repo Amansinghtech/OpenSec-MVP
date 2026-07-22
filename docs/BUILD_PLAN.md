@@ -272,14 +272,19 @@ Convert raw logs into structured security events (PRD §4).
 
 Build behavioral sessions to identify attack chains (stateful).
 
-- [ ] Consume `normalized_events`.
-- [ ] **Sliding time-window state** keyed by `tenant_id + entity_id`.
-- [ ] Build event sequences; detect suspicious state transitions.
-- [ ] Emit `session_updated` and `suspicious_session_detected`.
-- [ ] Persist sessions (Postgres) and design for horizontal partitioning.
+- [x] Consume `normalized_events` — `NormalizedEventKafkaListener` (active when the bus is enabled).
+- [x] **Sliding time-window state** keyed by `(tenant_id, entity_type, entity_id)` — configurable
+  inactivity window (`opensec.session.window-minutes`, default 30); a gap beyond it opens a new session.
+- [x] Build event sequences; detect suspicious state transitions — brute force (N auth failures),
+  successful brute force (failures→success), and privilege escalation (success→priv-esc).
+- [x] Emit `session_updated` (every update) and `suspicious_session_detected` (on first flag) to
+  `session_events`.
+- [x] Persist sessions (`sessions` table, Flyway `V5`); logically partitioned by tenant+entity
+  (Kafka records keyed by tenant). Thresholds via `SessionProperties`.
 
-**Exit criteria:** sessions are reconstructed from event streams and suspicious sessions
-are emitted downstream.
+**Exit criteria:** ✅ sessions are reconstructed from the normalized stream and suspicious sessions
+are emitted. Verified by `SessionReconstructionServiceTest` (accumulation, brute force, successful
+brute force, window rollover).
 
 ---
 
