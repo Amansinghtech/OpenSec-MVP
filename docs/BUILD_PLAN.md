@@ -253,16 +253,18 @@ runs in CI, skipped without Docker). App boots and ingests even when Kafka is un
 
 Convert raw logs into structured security events (PRD §4).
 
-- [ ] Consume raw logs from Kafka.
-- [ ] **Parsers** for structured + unstructured logs (start with a couple of common formats,
-  e.g. syslog, Windows event log JSON).
-- [ ] **Metadata extraction** — assign entity identifiers (user/IP/host), classify event type.
-- [ ] Produce `normalized_event` to the `normalized_events` topic.
-- [ ] Pluggable parser interface (sets up the future plugin system).
-- [ ] Tests with sample raw→normalized fixtures.
+- [x] Consume raw logs from Kafka — `RawLogKafkaListener` on `raw_logs` (active when the bus is enabled).
+- [x] **Parsers** — `LogParser` SPI with `WazuhLogParser` (rule groups → event type, entity from
+  `data.srcip`/user/agent) and a `GenericLogParser` fallback for arbitrary sources.
+- [x] **Metadata extraction** — resolves a primary entity (`EntityType` IP/USER/HOST) + `entityId`,
+  classifies into `NormalizedEventType`, extracts severity/host/attributes.
+- [x] Produce `normalized_event` to the `normalized_events` topic (via `EventPublisher`).
+- [x] Pluggable parser interface (ordered; generic last) — foundation for the Phase 17 plugin system.
+- [x] Tests — `NormalizationServiceTest` (Wazuh + generic + idempotency, H2) and
+  `NormalizationPipelineKafkaTest` (E2E ingest→raw_logs→normalize→normalized_events, Testcontainers).
 
-**Exit criteria:** raw logs flowing through ingestion → Kafka → normalization emit
-structured `normalized_event`s.
+**Exit criteria:** ✅ raw logs flow ingestion → Kafka → normalization and emit structured
+`normalized_event`s (persisted to `normalized_events` table + published). Verified E2E in CI.
 
 ---
 
