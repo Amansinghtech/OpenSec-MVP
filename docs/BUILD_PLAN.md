@@ -292,13 +292,19 @@ brute force, window rollover).
 
 Multi-layer detection (PRD §6).
 
-- [ ] Signature-based detection rules.
-- [ ] Behavioral template matching (consumes session events).
-- [ ] Anomaly scoring + configurable risk scoring.
-- [ ] Policy evaluation engine with thresholds (config-driven, Redis-cached).
-- [ ] Emit `detection_signal`.
+- [x] Signature-based detection rules — `SignatureDetector` maps known-bad event types
+  (malware/intrusion/web-attack/priv-esc/auth-failure) to weighted base scores.
+- [x] Behavioral template matching — `BehavioralDetector` scores suspicious sessions from Phase 8
+  (successful brute force weighted highest).
+- [x] Anomaly scoring — `AnomalyDetector` scores high-severity events proportionally.
+- [x] Policy evaluation engine with thresholds — `DetectionEngine` runs all detectors (pluggable
+  `Detector` SPI) and applies a config-driven `emitThreshold` (`DetectionProperties`). Redis-cached
+  central config is formalized in Phase 15.
+- [x] Emit `detection_signal` — persisted (`detection_signals` table, Flyway `V6`) and published to
+  the `detection_signals` topic; consumed via `DetectionKafkaListener` (normalized + session events).
 
-**Exit criteria:** normalized + session events produce scored `detection_signal`s per policy.
+**Exit criteria:** ✅ normalized + session events produce scored `detection_signal`s per policy.
+Verified by `DetectionEngineTest` (signature critical, sub-threshold suppressed, anomaly, behavioral).
 
 ---
 
@@ -430,7 +436,8 @@ modifying core services.
 
 ## Immediate next step
 
-Progress: **Phase 0** ✅, **Phase 1** ✅ (CI/tests/lint/coverage), **Phase 2** ✅ (Auth & RBAC),
-**Phase 3** ✅ (Redis), **Phase 4** ✅ (gateway: tenant context + correlation id), **Phase 5** ✅
-(log ingestion + Wazuh webhook), **Phase 6** ✅ (Kafka event bus). Next: **Phase 7 — Normalization
-Service** consumes `raw_logs` from Kafka and emits `normalized_event`s. Tackle one checkbox group per PR.
+Progress: **Phases 0–9 ✅**. Detection pipeline is live end-to-end: ingestion → `raw_logs` →
+normalization → `normalized_events` → session reconstruction → `session_events` → detection engine →
+`detection_signals`. Next: **Phase 10 (OpenSearch / Wazuh Indexer)** for search, or **Phase 11 (RAG
+Intelligence)** to enrich detections, then **Phase 12 (Alert Service)** to aggregate signals into alerts.
+Tackle one checkbox group per PR.

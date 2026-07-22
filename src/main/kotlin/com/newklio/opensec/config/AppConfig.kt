@@ -9,5 +9,6 @@ import org.springframework.context.annotation.Configuration
     BootstrapConfig::class,
     RateLimitProperties::class,
     SessionProperties::class,
+    DetectionProperties::class,
 )
 class AppConfig
