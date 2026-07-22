@@ -355,12 +355,14 @@ Create and manage alerts.
 Endpoint telemetry + response execution for Windows/Linux (PRD §3 Agents). Per ADR-001, this is
 **"deploy & manage Wazuh agents"** rather than building agents from scratch.
 
-- [ ] Wazuh manager deployment + agent enrollment guidance (map agent groups → tenants).
-- [ ] Configure the Wazuh Integrator to ship alerts to the OPENSEC ingestion API (Phase 5) with an
+- [x] Wazuh manager deployment + agent enrollment guidance (map agent groups → tenants).
+  (`docs/AGENT_ENROLLMENT.md`; `POST /api/v1/agents` + API key auth)
+- [x] Configure the Wazuh Integrator to ship alerts to the OPENSEC ingestion API (Phase 5) with an
   `AGENT` token; or `alerts.json` → Fluent Bit → Kafka (Phase 6).
-- [ ] Agent/manager health surfaced in OPENSEC (heartbeat / fleet status).
+- [x] Agent/manager health surfaced in OPENSEC (heartbeat / fleet status).
+  (`POST /api/v1/agents/heartbeat`, `GET /api/v1/agents/fleet/summary`)
 - [ ] Command channel for defense actions — leverage Wazuh **active-response** (sets up Phase 14).
-- [ ] Windows + Linux agent rollout docs.
+- [x] Windows + Linux agent rollout docs. (`docs/AGENT_ENROLLMENT.md`)
 
 **Exit criteria:** Wazuh agents on endpoints ship telemetry into OPENSEC ingestion, and fleet
 health is visible.

@@ -40,12 +40,14 @@ class DataInitializer(
             "ROLE_READ" to "Read roles",
             "ROLE_WRITE" to "Create or update roles",
             "AUDIT_READ" to "Read audit logs",
+            "AGENT_READ" to "Read enrolled agents and fleet status",
+            "AGENT_WRITE" to "Enroll and revoke agents",
         )
 
     private val roleDefinitions =
         mapOf(
             "ADMIN" to permissions.keys,
-            "ANALYST" to setOf("USER_READ", "TENANT_READ", "ROLE_READ", "AUDIT_READ"),
+            "ANALYST" to setOf("USER_READ", "TENANT_READ", "ROLE_READ", "AUDIT_READ", "AGENT_READ"),
             "AGENT" to setOf("USER_READ"),
             "VIEWER" to setOf("USER_READ"),
         )

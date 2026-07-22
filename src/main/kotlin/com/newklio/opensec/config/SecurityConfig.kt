@@ -1,5 +1,6 @@
 package com.newklio.opensec.config
 
+import com.newklio.opensec.filter.AgentApiKeyAuthFilter
 import com.newklio.opensec.filter.JWTAuthFilter
 import com.newklio.opensec.handler.RestAccessDeniedHandler
 import com.newklio.opensec.handler.RestAuthenticationEntryPoint
@@ -24,6 +25,7 @@ class SecurityConfig {
     @Bean
     fun securityFilterChain(
         http: HttpSecurity,
+        agentApiKeyAuthFilter: AgentApiKeyAuthFilter,
         jwtAuthFilter: JWTAuthFilter,
         authenticationEntryPoint: RestAuthenticationEntryPoint,
         accessDeniedHandler: RestAccessDeniedHandler,
@@ -40,7 +42,8 @@ class SecurityConfig {
             }.exceptionHandling {
                 it.authenticationEntryPoint(authenticationEntryPoint)
                 it.accessDeniedHandler(accessDeniedHandler)
-            }.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+            }.addFilterBefore(agentApiKeyAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }

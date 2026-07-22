@@ -1,6 +1,7 @@
 package com.newklio.opensec.filter
 
 import com.newklio.opensec.context.RequestContext
+import com.newklio.opensec.entity.AgentPrincipal
 import com.newklio.opensec.entity.AuthenticatedUser
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -25,12 +26,15 @@ class TenantContextFilter : OncePerRequestFilter() {
         filterChain: FilterChain,
     ) {
         val principal = SecurityContextHolder.getContext().authentication?.principal
-        if (principal is AuthenticatedUser) {
-            val tenantId = principal.tenantId
-            RequestContext.setTenantId(tenantId)
-            if (tenantId != null) {
-                MDC.put(RequestContext.MDC_TENANT_ID, tenantId.toString())
+        val tenantId =
+            when (principal) {
+                is AuthenticatedUser -> principal.tenantId
+                is AgentPrincipal -> principal.tenantId
+                else -> null
             }
+        if (tenantId != null) {
+            RequestContext.setTenantId(tenantId)
+            MDC.put(RequestContext.MDC_TENANT_ID, tenantId.toString())
         }
         filterChain.doFilter(request, response)
     }
