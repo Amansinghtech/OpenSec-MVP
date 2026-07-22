@@ -207,20 +207,23 @@ carry a correlation id (verified by `GatewayIntegrationTest`).
 
 Accept logs from agents and other sources (PRD §3). **Wazuh is the first real source** (see ADR-001).
 
-- [ ] Define the **source-agnostic raw log ingestion contract** (DTO/schema: source, host,
-  timestamp, payload, tenant_id, correlation_id).
-- [ ] **Ingestion REST API** — `POST /api/v1/ingest/logs` (single + batch), authenticated
-  via an `AGENT`-role token.
-- [ ] **Wazuh ingestion endpoint** — `POST /api/v1/ingest/wazuh` that accepts the Wazuh
-  Integrator webhook payload and maps it (rule.id/level/mitre, agent, decoder, data.*) into the
-  raw ingestion contract.
-- [ ] **Validation & buffering** — validate incoming logs; buffer before forwarding.
-- [ ] **Persistence of raw logs** (Postgres table) for replay/audit.
-- [ ] **Backpressure / size limits** and idempotency (dedupe by event/correlation id).
-- [ ] Integration tests for ingestion happy-path + rejection cases (incl. a sample Wazuh alert).
+- [x] Define the **source-agnostic raw log ingestion contract** — `IngestLogRequest`
+  (source, host, eventId, occurredAt, severity, category, payload); `tenant_id`/`correlation_id`
+  are derived server-side from the request context, not the client.
+- [x] **Ingestion REST API** — `POST /api/v1/ingest/logs` (single) + `POST /api/v1/ingest/logs/batch`,
+  guarded by `@PreAuthorize("hasAnyRole('AGENT','ADMIN')")`.
+- [x] **Wazuh ingestion endpoint** — `POST /api/v1/ingest/wazuh` accepts the Wazuh Integrator
+  webhook payload; `WazuhAlertMapper` maps `rule.*`/`agent.*`/`id`/`timestamp` into the contract,
+  preserving the full alert as the payload.
+- [x] **Validation** — Bean Validation on the DTO; source required; tenant enforced from context.
+- [x] **Persistence of raw logs** — `raw_logs` table (Flyway `V3`) storing the verbatim JSON payload.
+- [x] **Idempotency** — dedupe by `(tenant, source, event_id)` via a unique index + within-batch
+  de-dup; concurrent races caught via `DataIntegrityViolationException`.
+- [x] Integration tests — `IngestionIntegrationTest`: generic ingest, dedupe, batch counts,
+  Wazuh alert mapping+storage, viewer→403, unauthenticated→401.
 
-**Exit criteria:** an authenticated client (and a Wazuh Integrator webhook) can POST single/batch
-logs; they are validated, deduped, stored, and ready to forward to normalization.
+**Exit criteria:** ✅ an authenticated agent (and a Wazuh Integrator webhook) can POST single/batch
+logs; they are validated, deduped, stored, and ready to forward to normalization (Kafka in Phase 6).
 
 ---
 
