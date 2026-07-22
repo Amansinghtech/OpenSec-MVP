@@ -133,12 +133,24 @@ tenant context. Verified end-to-end against H2 (PostgreSQL mode) with Hibernate 
 
 Redis underpins rate limiting, revocation, and config caching across later phases (PRD §Redis).
 
-- [ ] Add Redis to `docker-compose.dev.yaml` and Spring config.
-- [ ] Add `spring-boot-starter-data-redis`; create a `RedisConfig` + template beans.
-- [ ] Move JWT revocation list to Redis (from Phase 2).
-- [ ] Add a reusable rate-limiting component (used by the gateway/ingestion later).
+- [x] Add Redis to `docker-compose.dev.yaml` (with healthcheck) and Spring config
+  (`spring.data.redis.*` in local/prod properties, env-overridable).
+- [x] Add `spring-boot-starter-data-redis`; `RedisConfig` wires the Redis beans on top of Boot's
+  auto-configured `StringRedisTemplate` (activated via conditionals so the app/tests run without Redis).
+- [x] Move JWT revocation list to Redis — `RedisTokenRevocationService` (TTL = token's remaining
+  lifetime, self-expiring). Selected via `opensec.revocation.store=redis` (DB impl remains the
+  default fallback via `@ConditionalOnProperty`). **Fails open** on Redis outage.
+- [x] Add a reusable rate-limiting component — `RateLimiter`/`RedisRateLimiter` (fixed-window
+  `INCR`+TTL) applied by `RateLimitingFilter` to configured path prefixes (auth endpoints by
+  default), returning `429` structured JSON. Enabled via `opensec.rate-limit.enabled`. **Fails open**.
 
-**Exit criteria:** app connects to Redis locally; revocation + a sample rate-limited route work.
+**Exit criteria:** ✅ app boots with the Redis starter and lazily connects (verified even with Redis
+unreachable — it degrades gracefully, failing open). Redis-backed revocation + rate-limiting (`429`)
+are verified by `RedisIntegrationTest` (Testcontainers `redis:7`, runs in CI, skipped without Docker).
+
+> **Resilience note:** both Redis components fail open (allow the request / treat token as not
+> revoked) if Redis is unavailable, so an infra outage can't lock everyone out. The short access-token
+> TTL bounds the revocation risk window.
 
 ---
 
@@ -363,6 +375,7 @@ modifying core services.
 
 ## Immediate next step
 
-Progress: **Phase 0** ✅ done, **Phase 2** ✅ done, **Phase 1** ✅ done (CI + tests + lint +
-coverage). Next: **Phase 3** (Redis) is the natural follow-on to move token revocation off the
-database. Tackle one checkbox group per PR.
+Progress: **Phase 0** ✅, **Phase 1** ✅ (CI + tests + lint + coverage), **Phase 2** ✅ (Auth &
+RBAC), **Phase 3** ✅ (Redis: revocation + rate limiting). Next: **Phase 4** (API Gateway concerns —
+tenant-context filter, correlation IDs, validation) builds directly on the Redis rate limiter.
+Tackle one checkbox group per PR.
