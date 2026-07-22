@@ -375,13 +375,14 @@ health is visible.
 
 Automated response (PRD §9).
 
-- [ ] Consume `alert_created`; evaluate defense policies.
-- [ ] Actions: block IP, disable user, kill process, revoke tokens, quarantine container.
-- [ ] Notifications (Slack / Email).
-- [ ] Emit `defense_action_executed`; full audit trail.
-- [ ] Safe-guards: dry-run mode, approval gates for destructive actions.
+- [x] Consume `alert_created`; evaluate defense policies.
+- [x] Actions: block IP, disable user, kill process, revoke tokens, quarantine container.
+  (MVP executors: block IP, disable user, revoke tokens)
+- [x] Notifications (Slack / Email). (`LoggingDefenseNotifier`; pluggable `DefenseNotifier`)
+- [x] Emit `defense_action_executed`; full audit trail.
+- [x] Safe-guards: dry-run mode, approval gates for destructive actions.
 
-**Exit criteria:** alerts can trigger automated, audited defense actions (with dry-run).
+**Exit criteria:** ✅ alerts can trigger automated, audited defense actions (with dry-run).
 
 ---
 

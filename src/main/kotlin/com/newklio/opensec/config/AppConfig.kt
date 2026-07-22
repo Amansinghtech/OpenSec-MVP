@@ -13,5 +13,6 @@ import org.springframework.context.annotation.Configuration
     DetectionProperties::class,
     OpenSearchProperties::class,
     RagProperties::class,
+    DefenseProperties::class,
 )
 class AppConfig

@@ -132,4 +132,12 @@ class KafkaConfig(
             .partitions(partitions)
             .replicas(1)
             .build()
+
+    @Bean
+    fun defenseEventsTopic(): NewTopic =
+        TopicBuilder
+            .name(KafkaTopics.DEFENSE_EVENTS)
+            .partitions(partitions)
+            .replicas(1)
+            .build()
 }
