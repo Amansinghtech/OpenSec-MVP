@@ -187,14 +187,19 @@ are verified by `RedisIntegrationTest` (Testcontainers `redis:7`, runs in CI, sk
 
 Harden the REST surface as the single entry point.
 
-- [ ] **Rate limiting** on public/auth endpoints (Redis-backed).
-- [ ] **Tenant context injection** filter (reads tenant from JWT, sets request scope).
-- [ ] **Request/response logging + correlation ID** — generate/propagate `correlation_id`
-  on every request (PRD system property: every event carries `tenant_id` + `correlation_id`).
-- [ ] **Consistent error envelope + validation** — Bean Validation on all DTOs.
-- [ ] **API versioning** finalized (`/api/v1`).
+- [x] **Rate limiting** on public/auth endpoints (Redis-backed) — delivered in Phase 3
+  (`RateLimitingFilter` + `RedisRateLimiter`).
+- [x] **Tenant context injection** filter — `TenantContextFilter` binds the authenticated user's
+  tenant into a request-scoped `RequestContext` (+ MDC) after authentication.
+- [x] **Request/response logging + correlation ID** — `CorrelationIdFilter` (runs first) reads or
+  generates `X-Correlation-Id`, echoes it on the response, and exposes it via MDC so every log line
+  carries `correlationId`/`tenantId`. Logging pattern updated.
+- [x] **Consistent error envelope + validation** — `ApiError` envelope (Phase 0) + Bean Validation
+  on DTOs; the global handler maps validation → 400.
+- [x] **API versioning** finalized (`/api/v1` via `WebConfig` path prefix, Phase 0).
 
-**Exit criteria:** all requests are rate-limited, tenant-scoped, and carry a correlation id.
+**Exit criteria:** ✅ all requests are rate-limited (Phase 3), tenant-scoped (`RequestContext`), and
+carry a correlation id (verified by `GatewayIntegrationTest`).
 
 ---
 
